@@ -11,7 +11,7 @@ Microsoft.AspNetCore.WebHost.CreateDefaultBuilder<Digital_Jungle_Startup>(args)
             string Password = context.Configuration.GetValue<string>("Kestrel:Endpoints:Https:Certificate:Password");
             
             if (string.IsNullOrEmpty(KeyPath) || string.IsNullOrEmpty(Password)){
-                Console.WriteLine("Cert not found");
+                Console.WriteLine("Cert not found. Connect to localhost.");
                 return;
             }
             configure.UseHttps(KeyPath, Password); 
