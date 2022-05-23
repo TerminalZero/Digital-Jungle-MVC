@@ -1,21 +1,26 @@
-using System.Net;
-
 Microsoft.AspNetCore.WebHost.CreateDefaultBuilder<Digital_Jungle_Startup>(args)
-    .ConfigureKestrel((context, options) => {
+    .ConfigureKestrel((context, kestrelOptions) => {
+        if (context.HostingEnvironment.IsProduction()) {
+            string? KeyPath = context.Configuration.GetValue<string?>("Kestrel:Endpoints:Https:Certificate:KeyPath");
+            string? Password = context.Configuration.GetValue<string?>("Kestrel:Endpoints:Https:Certificate:Password");
+            int? Port = context.Configuration.GetValue<int?>("Kestrel:Endpoints:Https:Port");
 
-        IPAddress local_IP = Dns.GetHostEntry(Dns.GetHostName())
-            .AddressList.First(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+            if (KeyPath != null && Password != null) {
+                System.Net.IPAddress current_IP = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList
+                    .First(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
 
-        options.Listen(local_IP, 443, configure => {
-            string KeyPath = context.Configuration.GetValue<string>("Kestrel:Endpoints:Https:Certificate:KeyPath");
-            string Password = context.Configuration.GetValue<string>("Kestrel:Endpoints:Https:Certificate:Password");
-            
-            if (string.IsNullOrEmpty(KeyPath) || string.IsNullOrEmpty(Password)){
-                Console.WriteLine("Cert not found. Connect to localhost.");
-                return;
+                kestrelOptions.Listen(current_IP, Port ?? 443, configure => {
+                    configure.UseHttps(KeyPath, Password);
+                    Console.WriteLine("Website is Live!");
+                });
             }
-            configure.UseHttps(KeyPath, Password); 
-        });
+            else {
+                Console.WriteLine("Certificate not found in appsettings. Visitors can't connect.");
+            }
+        }
+        else {
+            Console.WriteLine("Non-production environment. Visitors can't connect.");
+        }
     })
     .Build()
     .Run();
