@@ -9,7 +9,10 @@ Microsoft.AspNetCore.WebHost.CreateDefaultBuilder<Digital_Jungle_Startup>(args)
                 System.Net.IPAddress current_IP = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList
                     .First(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
 
-                kestrelOptions.Listen(current_IP, Port ?? 443, configure => {
+                // At an earlier point, IPAddress.Any yielded the socket-already-binded exception.
+                // After replacing my usb wifi adapter, IPAddress.Any appears to work now, and the above current_IP getter is no longer needed.
+                
+                kestrelOptions.Listen(System.Net.IPAddress.Any, Port ?? 443, configure => {
                     configure.UseHttps(KeyPath, Password);
                     Console.WriteLine("Website is Live!");
                 });
